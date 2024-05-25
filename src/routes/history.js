@@ -1,41 +1,72 @@
 const express = require('express');
-const storeHistory = require('../services/firestore');
-const { body, validationResult } = require('express-validator');
-const historyRoute = express.Router();
+const {
+  storeDetectHistory,
+  getAllDetectHistories,
+  getDetectHistoryByID,
+} = require('../services/firestore');
+const detectRoute = express.Router();
 
-historyRoute.post(
-  '/',
-  [
-    body('id').notEmpty().withMessage('ID tidak boleh kosong'),
-    body('name').notEmpty().withMessage('Nama tidak boleh kosong'),
-    body('description').notEmpty().withMessage('Deskripsi tidak boleh kosong'),
-  ],
-  async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(422).json({
-        status: 'fail',
-        errors: errors.array().map((err) => ({
-          field: err.path,
-          message: err.msg,
-        })),
-      });
-    }
+detectRoute.post('/', async (req, res) => {
+  let data = {
+    result: 'X',
+    explanation: 'X',
+    createdAt: 'X',
+    articleRedirect: 'X',
+  };
 
-    let data = {
-      id: req.body.id,
-      name: req.body.name,
-      description: req.body.description,
-    };
-
-    await storeHistory(data.id, data);
+  try {
+    const id = await storeDetectHistory(data);
 
     res.status(201).json({
       status: 'success',
       message: 'History successfully added',
-      data,
+      data: {
+        id,
+        ...data,
+      },
     });
-  },
-);
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: error.message,
+    });
+  }
+});
 
-module.exports = historyRoute;
+detectRoute.get('/histories', async (req, res) => {
+  const data = await getAllDetectHistories();
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Data berhasil diambil',
+    data,
+  });
+});
+
+detectRoute.get('/histories/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const history = await getDetectHistoryByID(id);
+
+    if (!history) {
+      return res.status(404).json({
+        status: 'fail',
+        message: 'Tidak ada data',
+      });
+    }
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Data berhasil diambil',
+      data: history,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: error.message,
+    });
+  }
+});
+
+module.exports = detectRoute;
