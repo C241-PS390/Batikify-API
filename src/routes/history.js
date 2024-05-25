@@ -1,21 +1,41 @@
 const express = require('express');
 const storeHistory = require('../services/firestore');
+const { body, validationResult } = require('express-validator');
 const historyRoute = express.Router();
 
-historyRoute.post('/', async (req, res) => {
-  let data = {
-    id: '1',
-    name: 'History Test',
-    description: 'Ini tes history',
-  };
+historyRoute.post(
+  '/',
+  [
+    body('id').notEmpty().withMessage('ID tidak boleh kosong'),
+    body('name').notEmpty().withMessage('Nama tidak boleh kosong'),
+    body('description').notEmpty().withMessage('Deskripsi tidak boleh kosong'),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({
+        status: 'fail',
+        errors: errors.array().map((err) => ({
+          field: err.path,
+          message: err.msg,
+        })),
+      });
+    }
 
-  await storeHistory(data.id, data);
+    let data = {
+      id: req.body.id,
+      name: req.body.name,
+      description: req.body.description,
+    };
 
-  res.status(201).json({
-    status: 'success',
-    message: 'Test successfully added',
-    data,
-  });
-});
+    await storeHistory(data.id, data);
+
+    res.status(201).json({
+      status: 'success',
+      message: 'History successfully added',
+      data,
+    });
+  },
+);
 
 module.exports = historyRoute;
