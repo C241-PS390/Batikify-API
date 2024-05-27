@@ -4,9 +4,10 @@ const db = new Firestore({ projectId: process.env.PROJECT_ID });
 /*
  * Save detection result to Firestore document named 'histories'
  */
-async function storeDetectHistory(data) {
+async function storeDetectHistory(userId, data) {
   try {
-    const res = db.collection('histories').add(data);
+    const userHistoryRef = db.collection('histories').doc(userId).collection('userHistories');
+    const res = await userHistoryRef.add(data);
     return res.id;
   } catch (error) {
     throw error;
@@ -16,8 +17,9 @@ async function storeDetectHistory(data) {
 /*
  * Get all detection result from Firestore document named 'histories'
  */
-async function getAllDetectHistories() {
-  const snapshot = await db.collection('histories').get();
+async function getAllDetectHistories(userId) {
+  const userHistoryRef = db.collection('histories').doc(userId).collection('userHistories');
+  const snapshot = await userHistoryRef.get();
 
   const data = snapshot.docs.map((doc) => ({
     id: doc.id,
@@ -30,9 +32,10 @@ async function getAllDetectHistories() {
 /*
  * Get a detail detection result from Firestore document named 'histories'
  */
-async function getDetectHistoryByID(id) {
+async function getDetectHistoryByID(userId, id) {
   try {
-    const doc = await db.collection('histories').doc(id).get();
+    const userHistoryRef = db.collection('histories').doc(userId).collection('userHistories');
+    const doc = await userHistoryRef.doc(id).get();
 
     if (!doc.exists) {
       return null;

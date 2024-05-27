@@ -1,8 +1,9 @@
 const express = require('express');
 const { getAllArticles, getArticleByID } = require('../services/firestore');
+const verifyToken = require('../middlewares/verifyToken');
 const articleRoutes = express.Router();
 
-articleRoutes.get('/', async (req, res) => {
+articleRoutes.get('/', verifyToken, async (req, res) => {
   const data = await getAllArticles();
 
   res.status(200).json({
@@ -12,7 +13,7 @@ articleRoutes.get('/', async (req, res) => {
   });
 });
 
-articleRoutes.get('/:id', async (req, res) => {
+articleRoutes.get('/:id', verifyToken, async (req, res) => {
   const { id } = req.params;
 
   try {
