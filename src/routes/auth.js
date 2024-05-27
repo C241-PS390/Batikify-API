@@ -2,7 +2,7 @@ const express = require('express');
 const authRoute = express.Router();
 let bcrypt = require('bcrypt');
 let jwt = require('jsonwebtoken');
-const { storeUser, getUserByEmail } = require('../services/firestore');
+const { storeUser, getUserByEmail, storeBlacklistedToken } = require('../services/firestore');
 const { body, validationResult } = require('express-validator');
 const verifyToken = require('../middlewares/verifyToken');
 
@@ -143,6 +143,47 @@ authRoute.get('/profile', verifyToken, async (req, res) => {
     message: 'Data berhasil diambil',
     data: req.user,
   });
+});
+
+authRoute.post('/logout', verifyToken, async (req, res) => {
+  const token = req.headers['x-access-token'] || req.headers['authorization'];
+  if (!token) {
+    return res.status(403).json({
+      status: 'fail',
+      message: 'Tidak ada token',
+    });
+  }
+
+  const decoded = jwt.decode(token);
+  if (!decoded) {
+    return res.status(400).json({
+      status: 'fail',
+      message: 'Token invalid',
+    });
+  }
+
+  const exp = decoded.exp;
+  const createdAt = new Date();
+
+  const tokenData = {
+    token,
+    exp,
+    createdAt,
+  };
+
+  try {
+    await storeBlacklistedToken(tokenData);
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Berhasil log out',
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: 'Gagal log out',
+    });
+  }
 });
 
 module.exports = authRoute;

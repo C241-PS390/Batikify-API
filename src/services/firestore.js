@@ -102,6 +102,24 @@ async function storeUser(data) {
   }
 }
 
+/*
+ * Store token after logout to blacklistedTokens
+ */
+async function storeBlacklistedToken(data) {
+  try {
+    db.collection('blacklistedTokens').doc(data.token).set(data);
+  } catch (error) {
+    throw error;
+  }
+}
+
+/*
+ * Get specified blacklisted token
+ */
+async function getBlacklistedTokenByToken(data) {
+  return db.collection('blacklistedTokens').doc(data).get();
+}
+
 module.exports = {
   storeDetectHistory,
   getAllDetectHistories,
@@ -110,4 +128,6 @@ module.exports = {
   getArticleByID,
   getUserByEmail,
   storeUser,
+  storeBlacklistedToken,
+  getBlacklistedTokenByToken,
 };
