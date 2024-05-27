@@ -73,10 +73,38 @@ async function getArticleByID(id) {
   }
 }
 
+/*
+ * Get user by email
+ */
+async function getUserByEmail(email) {
+  const userRef = db.collection('users').where('email', '==', email);
+  const snapshot = await userRef.get();
+
+  if (snapshot.empty) {
+    return null;
+  }
+
+  const user = snapshot.docs[0];
+  return { id: user.id, ...user.data() };
+}
+
+/*
+ * Create new user
+ */
+async function storeUser(data) {
+  try {
+    db.collection('users').doc(data.email).set(data);
+  } catch (error) {
+    throw error;
+  }
+}
+
 module.exports = {
   storeDetectHistory,
   getAllDetectHistories,
   getDetectHistoryByID,
   getAllArticles,
   getArticleByID,
+  getUserByEmail,
+  storeUser,
 };
