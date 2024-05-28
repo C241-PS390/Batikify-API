@@ -8,10 +8,4 @@ rootRoute.get('/', (req, res) => {
   });
 });
 
-rootRoute.get('/debug-env', (req, res) => {
-  res.status(200).json({
-    message: `Running on port ${process.env.JWT_SECRET}`,
-  });
-});
-
 module.exports = rootRoute;
