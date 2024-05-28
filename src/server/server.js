@@ -5,9 +5,8 @@ const dashboardRoute = require('../routes/dashboard');
 const detectRoute = require('../routes/detect');
 const articleRoutes = require('../routes/article');
 const authRoute = require('../routes/auth');
-const verifyToken = require('../middlewares/verifyToken');
 const app = express();
-const port = 7000;
+const port = process.env.PORT || 7000;
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
