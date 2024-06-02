@@ -1,42 +1,60 @@
-const express = require('express');
-const { getAllArticles, getArticleByID } = require('../services/firestore');
-const verifyToken = require('../middlewares/verifyToken');
-const articleRoutes = express.Router();
+const express = require("express");
+const router = express.Router();
+const {
+  addArticle,
+  getArticleById,
+  getAllArticles,
+} = require("../services/articleService");
 
-articleRoutes.get('/', verifyToken, async (req, res) => {
-  const data = await getAllArticles();
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Data berhasil diambil',
-    data,
-  });
+router.post("/addArticle", async (req, res) => {
+  const { articleId, title, content, publicationDate, category, tags } =
+    req.body;
+  try {
+    const result = await addArticle(
+      articleId,
+      title,
+      content,
+      publicationDate,
+      category,
+      tags
+    );
+    res.status(201).json(result);
+  } catch (error) {
+    res
+      .status(400)
+      .json({ message: "Failed to add article", error: error.message });
+  }
 });
 
-articleRoutes.get('/:id', verifyToken, async (req, res) => {
-  const { id } = req.params;
-
+router.get("/getArticle/:articleId", async (req, res) => {
+  const { articleId } = req.params;
   try {
-    const article = await getArticleByID(id);
-
-    if (!article) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'Tidak ada data',
-      });
+    const result = await getArticleById(articleId);
+    if (result.status === "error") {
+      res.status(404).json(result);
+    } else {
+      res.status(200).json(result);
     }
-
-    res.status(200).json({
-      status: 'success',
-      message: 'Data berhasil diambil',
-      data: article,
-    });
   } catch (error) {
     res.status(500).json({
-      status: 'error',
-      message: error.message,
+      status: "error",
+      message: "Failed to retrieve article",
+      error: error.message,
     });
   }
 });
 
-module.exports = articleRoutes;
+router.get("/getAllArticles", async (req, res) => {
+  try {
+    const result = await getAllArticles();
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: "Failed to retrieve articles",
+      error: error.message,
+    });
+  }
+});
+
+module.exports = router;
