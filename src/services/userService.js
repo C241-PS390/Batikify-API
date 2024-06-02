@@ -1,4 +1,4 @@
-const admin = require("./admin");
+const admin = require('./admin');
 async function registerUser(email, password) {
   try {
     const userRecord = await admin.auth().createUser({
@@ -22,8 +22,8 @@ async function loginUser(email) {
 
 async function logoutUser() {
   try {
-    localStorage.removeItem("firebaseToken");
-    return { success: true, message: "Logout successful" };
+    localStorage.removeItem('firebaseToken');
+    return { status: 'success', message: 'Logout successful' };
   } catch (error) {
     throw error;
   }

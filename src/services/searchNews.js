@@ -4,7 +4,6 @@ const axios = require('axios');
 function getNewsInfo(page, searchQuery = 'batik') {
   const searchString = searchQuery;
   const encodedString = encodeURIComponent(searchString);
-  console.log(encodedString);
 
   const AXIOS_OPTIONS = {
     headers: {
