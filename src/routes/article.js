@@ -6,7 +6,11 @@ router.post('/addArticle', async (req, res) => {
   const { articleId, title, content, publicationDate, category, tags } = req.body;
   try {
     const result = await addArticle(articleId, title, content, publicationDate, category, tags);
-    res.status(201).json(result);
+    res.status(201).json({
+      status: 'success',
+      message: 'Article succesfully added',
+      data: result,
+    });
   } catch (error) {
     res
       .status(400)
@@ -17,25 +21,36 @@ router.post('/addArticle', async (req, res) => {
 router.get('/getArticle/:articleId', async (req, res) => {
   const { articleId } = req.params;
   try {
-    const result = await getArticleById(articleId);
-    if (result.status === 'error') {
-      res.status(404).json(result);
-    } else {
-      res.status(200).json(result);
-    }
-  } catch (error) {
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to retrieve article',
-      error: error.message,
+    const article = await getArticleById(articleId);
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Articles retrieved successfully',
+      data: article,
     });
+  } catch (error) {
+    if (error.message === 'Article not found') {
+      res.status(404).json({
+        status: 'fail',
+        message: error.message,
+      });
+    } else {
+      res.status(500).json({
+        status: 'error',
+        message: error.message,
+      });
+    }
   }
 });
 
 router.get('/getAllArticles', async (req, res) => {
   try {
-    const result = await getAllArticles();
-    res.status(200).json(result);
+    const articles = await getAllArticles();
+    res.status(200).json({
+      status: 'success',
+      message: 'Articles retrieved successfully',
+      data: articles,
+    });
   } catch (error) {
     res.status(500).json({
       status: 'error',

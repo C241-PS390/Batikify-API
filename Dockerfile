@@ -4,7 +4,6 @@ WORKDIR /app
 ENV PORT 8080
 
 COPY . .
-COPY .env .env
 RUN npm install
 
 EXPOSE 8080
