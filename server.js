@@ -5,6 +5,7 @@ const userRoutes = require('./src/routes/user');
 const articleRoutes = require('./src/routes/article');
 const newsRoutes = require('./src/routes/news');
 const encyclopediaRoutes = require('./src/routes/encyclopedia');
+const detectRoutes = require('./src/routes/detect');
 const app = express();
 
 app.use(express.urlencoded({ extended: false }));
@@ -15,6 +16,7 @@ app.use('/user', userRoutes);
 app.use('/article', articleRoutes);
 app.use('/news', newsRoutes);
 app.use('/encyclopedia', encyclopediaRoutes);
+app.use('/detect', detectRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

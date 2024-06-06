@@ -68,10 +68,15 @@ router.post('/login', validateLogin, async (req, res) => {
 });
 
 router.get('/', verifyToken, async (req, res) => {
+  const userData = req.user;
+
   res.status(200).json({
     status: 'success',
     message: 'Data berhasil diambil',
-    data: req.user,
+    data: {
+      fullName: userData.fullName,
+      email: userData.email,
+    },
   });
 });
 

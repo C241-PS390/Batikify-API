@@ -27,6 +27,7 @@ async function verifyToken(req, res, next) {
       }
 
       req.user = {
+        id: user.id,
         email: user.email,
         fullName: user.fullName,
       };
