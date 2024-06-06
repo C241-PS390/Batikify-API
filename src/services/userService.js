@@ -1,48 +1,96 @@
-const admin = require("./admin");
-const { getFirestore, Timestamp } = require("firebase-admin/firestore");
+const admin = require('./admin');
+const { getFirestore } = require('firebase-admin/firestore');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const db = getFirestore();
 
-async function registerUser(email, password, nama) {
-  try {
-    if (!email || !password || !nama) {
-      throw new Error("Email, password, dan nama harus diisi");
-    }
+async function getUserByEmail(email) {
+  const userSnapshot = await db.collection('usersData').where('email', '==', email).get();
 
-    const userRecord = await admin.auth().createUser({
-      email,
-      password,
-    });
+  if (userSnapshot.empty) {
+    return null;
+  }
+
+  const user = userSnapshot.docs[0];
+  return { id: user.id, ...user.data() };
+}
+
+async function registerUser(email, password, fullName) {
+  try {
+    const emailTaken = await getUserByEmail(email);
+    if (emailTaken) {
+      throw new Error('Email sudah digunakan');
+    }
 
     const timestamp = admin.firestore.FieldValue.serverTimestamp();
 
-    await db.collection("usersData").doc(userRecord.uid).set({
-      email: userRecord.email,
-      nama: nama,
-      publishedArticle: {},
-      history: {},
+    const newUser = {
+      email,
+      password: await bcrypt.hash(password, 8),
+      fullName,
       createdAt: timestamp,
       lastModifyAt: timestamp,
-    });
+    };
 
-    return userRecord;
+    const userDoc = await db.collection('usersData').add(newUser);
+
+    return userDoc.id;
   } catch (error) {
     throw error;
   }
 }
 
-async function loginUser(email) {
+async function loginUser(email, password) {
+  const errorMessage = 'Email atau password salah';
+
   try {
-    const userRecord = await admin.auth().getUserByEmail(email);
-    return userRecord;
+    const user = await getUserByEmail(email);
+    if (!user) {
+      throw new Error(errorMessage);
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new Error(errorMessage);
+    }
+
+    let token = jwt.sign(
+      {
+        id: user.email,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: 60 * 60 * 24,
+      },
+    );
+
+    return token;
   } catch (error) {
     throw error;
   }
 }
 
-async function logoutUser() {
+async function logoutUser(token) {
   try {
-    localStorage.removeItem("firebaseToken");
-    return { status: "success", message: "Logout successful" };
+    if (!token) {
+      throw new Error('Tidak ada token');
+    }
+
+    const decoded = jwt.decode(token);
+    if (!decoded) {
+      throw new Error('Token invalid');
+    }
+
+    const expired = decoded.exp;
+    const createdAt = admin.firestore.FieldValue.serverTimestamp();
+
+    const tokenData = {
+      token,
+      expired,
+      createdAt,
+    };
+
+    await db.collection('blacklistedTokens').doc(token).set(tokenData);
   } catch (error) {
     throw error;
   }
@@ -52,4 +100,5 @@ module.exports = {
   registerUser,
   loginUser,
   logoutUser,
+  getUserByEmail,
 };

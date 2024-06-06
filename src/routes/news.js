@@ -1,8 +1,9 @@
 const express = require('express');
 const getNewsInfo = require('../services/searchNews');
+const verifyToken = require('../middlewares/verifyToken');
 const newsRoutes = express.Router();
 
-newsRoutes.get('/', async (req, res) => {
+newsRoutes.get('/', verifyToken, async (req, res) => {
   const { page, searchQuery } = req.query;
   const news = await getNewsInfo(page, searchQuery);
 

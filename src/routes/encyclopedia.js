@@ -1,8 +1,9 @@
 const express = require('express');
 const { getAllEncyclopedia, getEncyclopediaById } = require('../services/encyclopediaService');
+const verifyToken = require('../middlewares/verifyToken');
 const router = express.Router();
 
-router.get('/', async (req, res) => {
+router.get('/', verifyToken, async (req, res) => {
   try {
     const encyclopedia = await getAllEncyclopedia();
 
@@ -20,7 +21,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.get('/:encyclopediaId', async (req, res) => {
+router.get('/:encyclopediaId', verifyToken, async (req, res) => {
   const { encyclopediaId } = req.params;
 
   try {

@@ -1,59 +1,101 @@
-const express = require("express");
+const express = require('express');
+const { validationResult } = require('express-validator');
+const { registerUser, loginUser, logoutUser } = require('../services/userService');
+const { validateRegistration, validateLogin } = require('../middlewares/userValidation');
+const verifyToken = require('../middlewares/verifyToken');
 const router = express.Router();
-const { registerUser, loginUser } = require("../services/userService");
 
-router.post("/register", async (req, res) => {
-  const { email, password, nama } = req.body;
+router.post('/register', validateRegistration, async (req, res) => {
+  const validationErrors = validationResult(req);
+  if (!validationErrors.isEmpty()) {
+    return res.status(422).json({
+      status: 'fail',
+      message: 'Validation error',
+      errors: validationErrors.array().map((err) => ({
+        field: err.path,
+        message: err.msg,
+      })),
+    });
+  }
+
+  const { email, password, fullName } = req.body;
   try {
-    const userRecord = await registerUser(email, password, nama);
+    const userId = await registerUser(email, password, fullName);
     res.status(201).json({
-      status: "success",
-      message: "User created successfully",
-      data: { uid: userRecord.uid },
+      status: 'success',
+      message: 'User created successfully',
+      data: { userId },
     });
   } catch (error) {
-    res
-      .status(400)
-      .json({
-        status: "fail",
-        message: "Failed to create user",
-        error: error.message,
-      });
+    let errorStatus;
+    if (error.message === 'Email sudah digunakan') {
+      errorStatus = 409;
+    } else {
+      errorStatus = 500;
+    }
+
+    res.status(errorStatus).json({
+      status: 'fail',
+      message: 'Failed to create user',
+      error: error.message,
+    });
   }
 });
 
-router.post("/login", async (req, res) => {
-  const { email } = req.body;
+router.post('/login', validateLogin, async (req, res) => {
+  const { email, password } = req.body;
   try {
-    const userRecord = await loginUser(email);
+    const token = await loginUser(email, password);
     res.json({
-      status: "success",
-      message: "Login successful",
-      data: { uid: userRecord.uid },
+      status: 'success',
+      message: 'Login successful',
+      data: { token },
     });
   } catch (error) {
-    res
-      .status(401)
-      .json({
-        status: "fail",
-        message: "Invalid credentials",
-        error: error.message,
-      });
+    let errorStatus;
+    if (error.message === 'Email atau password salah') {
+      errorStatus = 401;
+    } else {
+      errorStatus = 500;
+    }
+
+    res.status(errorStatus).json({
+      status: 'fail',
+      message: 'Login failed',
+      error: error.message,
+    });
   }
 });
 
-router.post("/logout", async (req, res) => {
+router.get('/', verifyToken, async (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    message: 'Data berhasil diambil',
+    data: req.user,
+  });
+});
+
+router.post('/logout', verifyToken, async (req, res) => {
   try {
-    await logoutUser();
-    res.json({ status: "success", message: "Logout successful" });
+    const token = req.headers['authorization'];
+
+    await logoutUser(token);
+    res.json({ status: 'success', message: 'Logout successful' });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        status: "fail",
-        message: "Failed to logout",
-        error: error.message,
-      });
+    let errorStatus;
+    if (error.message === 'Tidak ada token') {
+      errorStatus = 403;
+    } else if (error.message === 'Token invalid') {
+      errorStatus = 400;
+    } else {
+      errorStatus = 500;
+    }
+
+    res.status(errorStatus).json({
+      status: 'fail',
+      message: 'Failed to logout',
+      error: error.message,
+    });
   }
 });
 
