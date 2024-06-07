@@ -12,7 +12,6 @@ router.get('/', verifyToken, async (req, res) => {
   try {
     let encyclopedia;
     if (search) {
-      console.log(search);
       encyclopedia = await searchEncyclopedia(search);
     } else {
       encyclopedia = await getAllEncyclopedia();

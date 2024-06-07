@@ -1,4 +1,5 @@
 const { getFirestore } = require('firebase-admin/firestore');
+const _ = require('lodash');
 const db = getFirestore();
 
 async function getAllEncyclopedia() {
@@ -21,25 +22,13 @@ async function getAllEncyclopedia() {
 
 async function searchEncyclopedia(keyword) {
   try {
-    if (!keyword) {
-      return getAllEncyclopedia();
-    }
+    const encyclopedias = await getAllEncyclopedia();
 
-    const encyclopediaSnapshot = await db
-      .collection('encyclopedias')
-      .orderBy('name')
-      .where('name', '==', keyword)
-      .get();
-    const encyclopedias = [];
-
-    encyclopediaSnapshot.forEach((doc) => {
-      encyclopedias.push({
-        id: doc.id,
-        ...doc.data(),
-      });
+    const filteredEncyclopedias = _.filter(encyclopedias, (item) => {
+      return item.name.toLowerCase().includes(keyword.toLowerCase());
     });
 
-    return encyclopedias;
+    return filteredEncyclopedias;
   } catch (error) {
     throw error;
   }
