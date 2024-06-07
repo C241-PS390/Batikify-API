@@ -19,6 +19,32 @@ async function getAllEncyclopedia() {
   }
 }
 
+async function searchEncyclopedia(keyword) {
+  try {
+    if (!keyword) {
+      return getAllEncyclopedia();
+    }
+
+    const encyclopediaSnapshot = await db
+      .collection('encyclopedias')
+      .orderBy('name')
+      .where('name', '==', keyword)
+      .get();
+    const encyclopedias = [];
+
+    encyclopediaSnapshot.forEach((doc) => {
+      encyclopedias.push({
+        id: doc.id,
+        ...doc.data(),
+      });
+    });
+
+    return encyclopedias;
+  } catch (error) {
+    throw error;
+  }
+}
+
 async function getEncyclopediaById(encyclopediaId) {
   const encyclopediaDoc = await db.collection('encyclopedias').doc(encyclopediaId).get();
 
@@ -29,4 +55,4 @@ async function getEncyclopediaById(encyclopediaId) {
   return encyclopediaDoc.data();
 }
 
-module.exports = { getAllEncyclopedia, getEncyclopediaById };
+module.exports = { getAllEncyclopedia, getEncyclopediaById, searchEncyclopedia };

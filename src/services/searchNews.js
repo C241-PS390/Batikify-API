@@ -3,7 +3,6 @@ const axios = require('axios');
 
 function getNewsInfo(page, searchQuery = 'batik') {
   const searchString = searchQuery;
-  const encodedString = encodeURIComponent(searchString);
 
   const AXIOS_OPTIONS = {
     headers: {
@@ -11,7 +10,7 @@ function getNewsInfo(page, searchQuery = 'batik') {
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Safari/537.36',
     },
     params: {
-      q: encodedString,
+      q: searchString,
       tbm: 'nws',
       hl: 'id',
       gl: 'id',

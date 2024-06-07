@@ -1,11 +1,22 @@
 const express = require('express');
-const { getAllEncyclopedia, getEncyclopediaById } = require('../services/encyclopediaService');
+const {
+  getAllEncyclopedia,
+  getEncyclopediaById,
+  searchEncyclopedia,
+} = require('../services/encyclopediaService');
 const verifyToken = require('../middlewares/verifyToken');
 const router = express.Router();
 
 router.get('/', verifyToken, async (req, res) => {
+  const { search } = req.query;
   try {
-    const encyclopedia = await getAllEncyclopedia();
+    let encyclopedia;
+    if (search) {
+      console.log(search);
+      encyclopedia = await searchEncyclopedia(search);
+    } else {
+      encyclopedia = await getAllEncyclopedia();
+    }
 
     res.status(200).json({
       status: 'success',
