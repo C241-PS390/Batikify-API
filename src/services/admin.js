@@ -3,6 +3,9 @@ const serviceAccount = require('./serviceAccount.json');
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
+  storageBucket: process.env.PROJECT_ID,
 });
 
-module.exports = admin;
+const imageDetectionBucket = admin.storage().bucket('batikify-image-bucket');
+
+module.exports = { admin, imageDetectionBucket };

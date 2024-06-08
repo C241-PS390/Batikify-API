@@ -1,4 +1,4 @@
-const admin = require('./admin');
+const { admin } = require('./admin');
 const { getFirestore } = require('firebase-admin/firestore');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');

@@ -5,9 +5,20 @@ const {
   getAllDetectHistories,
   getDetectHistoryById,
 } = require('../services/detectService');
+const uploadToBucket = require('../services/uploadFileService');
+const uploadFile = require('../services/multerService');
 const router = express.Router();
 
 router.post('/', verifyToken, async (req, res) => {
+  await uploadFile(req, res);
+
+  if (!req.file) {
+    return res.status(400).json({
+      status: 'fail',
+      message: 'No file uploaded',
+    });
+  }
+
   // data demo
   let data = {
     result: 'X',
@@ -17,6 +28,7 @@ router.post('/', verifyToken, async (req, res) => {
 
   try {
     const userId = req.user.id;
+    const imageUrl = await uploadToBucket(userId, req.file);
     const historyId = await storeDetectHistory(userId, data);
 
     res.status(201).json({
@@ -24,6 +36,7 @@ router.post('/', verifyToken, async (req, res) => {
       message: 'Prediksi berhasil',
       data: {
         historyId,
+        imageUrl,
         ...data,
       },
     });
