@@ -19,16 +19,17 @@ router.post('/', verifyToken, async (req, res) => {
     });
   }
 
-  // data demo
-  let data = {
-    result: 'X',
-    explanation: 'X',
-    createdAt: new Date(),
-  };
-
   try {
     const userId = req.user.id;
     const imageUrl = await uploadToBucket(userId, req.file);
+
+    // data demo
+    let data = {
+      result: 'X',
+      explanation: 'X',
+      createdAt: new Date(),
+      imageUrl,
+    };
     const historyId = await storeDetectHistory(userId, data);
 
     res.status(201).json({
