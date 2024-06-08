@@ -60,7 +60,7 @@ async function loginUser(email, password) {
       },
       process.env.JWT_SECRET,
       {
-        expiresIn: 60 * 60 * 24,
+        expiresIn: 60 * 60 * 24 * 30,
       },
     );
 
@@ -81,12 +81,14 @@ async function logoutUser(token) {
       throw new Error('Token invalid');
     }
 
-    const expired = decoded.exp;
+    const expireDate = new Date(Date.now() + 60 * 60 * 1000);
+    const expireAt = admin.firestore.Timestamp.fromDate(expireDate);
+
     const createdAt = admin.firestore.FieldValue.serverTimestamp();
 
     const tokenData = {
       token,
-      expired,
+      expireAt,
       createdAt,
     };
 
