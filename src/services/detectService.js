@@ -4,7 +4,7 @@ const db = getFirestore();
 async function storeDetectHistory(userId, data) {
   try {
     const userHistoryRef = db.collection('usersData').doc(userId).collection('detectionHistories');
-    const detectHistory = await userHistoryRef.add(data);
+    const detectHistory = await userHistoryRef.doc(data.id).set(data);
     return detectHistory.id;
   } catch (error) {
     throw error;

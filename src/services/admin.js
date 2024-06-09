@@ -6,6 +6,6 @@ admin.initializeApp({
   storageBucket: process.env.PROJECT_ID,
 });
 
-const imageDetectionBucket = admin.storage().bucket('batikify-image-bucket');
+const historyDetectionBucket = admin.storage().bucket(process.env.HISTORY_STORAGE_NAME);
 
-module.exports = { admin, imageDetectionBucket };
+module.exports = { admin, historyDetectionBucket };

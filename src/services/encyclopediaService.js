@@ -20,6 +20,16 @@ async function getAllEncyclopedia() {
   }
 }
 
+async function getEncyclopediaBySlug(slug) {
+  const encyclopediaDoc = await db.collection('encyclopedias').where('slug', '==', slug).get();
+
+  if (encyclopediaDoc.empty) {
+    throw new Error('Encyclopedia not found!');
+  }
+
+  return encyclopediaDoc.docs[0].data();
+}
+
 async function searchEncyclopedia(keyword) {
   try {
     const encyclopedias = await getAllEncyclopedia();
@@ -44,4 +54,9 @@ async function getEncyclopediaById(encyclopediaId) {
   return encyclopediaDoc.data();
 }
 
-module.exports = { getAllEncyclopedia, getEncyclopediaById, searchEncyclopedia };
+module.exports = {
+  getAllEncyclopedia,
+  getEncyclopediaBySlug,
+  getEncyclopediaById,
+  searchEncyclopedia,
+};

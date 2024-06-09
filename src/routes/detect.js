@@ -1,4 +1,5 @@
 const express = require('express');
+const { randomUUID } = require('crypto');
 const verifyToken = require('../middlewares/verifyToken');
 const {
   storeDetectHistory,
@@ -7,10 +8,14 @@ const {
 } = require('../services/detectService');
 const uploadToBucket = require('../services/uploadFileService');
 const uploadFile = require('../services/multerService');
+const detectBatik = require('../services/inferenceService');
+const loadModel = require('../services/loadModel');
+const { getEncyclopediaBySlug } = require('../services/encyclopediaService');
 const router = express.Router();
 
 router.post('/', verifyToken, async (req, res) => {
   await uploadFile(req, res);
+  const model = await loadModel();
 
   if (!req.file) {
     return res.status(400).json({
@@ -20,13 +25,19 @@ router.post('/', verifyToken, async (req, res) => {
   }
 
   try {
-    const userId = req.user.id;
-    const imageUrl = await uploadToBucket(userId, req.file);
+    const imageBuffer = req.file.buffer;
+    const { confidenceScore, label } = await detectBatik(model, imageBuffer);
 
-    // data demo
+    const docId = randomUUID();
+    const userId = req.user.id;
+    const fileName = `${docId}-${userId}-${label}.jpg`;
+    const imageUrl = await uploadToBucket(userId, req.file, fileName);
+
+    const resultDoc = await getEncyclopediaBySlug(label);
+
     let data = {
-      result: 'X',
-      explanation: 'X',
+      id: docId,
+      result: label,
       createdAt: new Date(),
       imageUrl,
     };
@@ -34,11 +45,16 @@ router.post('/', verifyToken, async (req, res) => {
 
     res.status(201).json({
       status: 'success',
-      message: 'Prediksi berhasil',
+      message:
+        confidenceScore > 95
+          ? 'Prediksi berhasil'
+          : 'Prediksi berhasil, namun di bawah ambang batas',
       data: {
         historyId,
         imageUrl,
-        ...data,
+        name: resultDoc.name,
+        origin: resultDoc.origin,
+        description: resultDoc.description,
       },
     });
   } catch (error) {
