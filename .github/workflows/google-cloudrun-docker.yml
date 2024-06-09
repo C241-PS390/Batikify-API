@@ -83,10 +83,10 @@ jobs:
       - name: Create .env file from .env.example
         run: |-
           cp .env.example .env
-          sed -i 's/^PROJECT_ID=.*/PROJECT_ID=${{ vars.PROJECT_ID }}/' .env
-          sed -i 's/^HISTORY_STORAGE_NAME=.*/HISTORY_STORAGE_NAME=${{ secrets.HISTORY_STORAGE_NAME }}/' .env
-          sed -i 's/^MODEL_URL=.*/MODEL_URL=${{ secrets.MODEL_URL }}/' .env
-          sed -i 's/^JWT_SECRET=.*/JWT_SECRET=${{ secrets.JWT_SECRET }}/' .env
+          sed -i 's#^PROJECT_ID=.*#PROJECT_ID=${{ vars.PROJECT_ID }}#' .env
+          sed -i 's#^HISTORY_STORAGE_NAME=.*#HISTORY_STORAGE_NAME=${{ secrets.HISTORY_STORAGE_NAME }}#' .env
+          sed -i 's#^MODEL_URL=.*#MODEL_URL=${{ secrets.MODEL_URL }}#' .env
+          sed -i 's#^JWT_SECRET=.*#JWT_SECRET=${{ secrets.JWT_SECRET }}#' .env
 
       - name: Create serviceAccount.json
         run: |-
