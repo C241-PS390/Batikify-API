@@ -10,7 +10,7 @@ const uploadToBucket = require('../services/uploadFileService');
 const uploadFile = require('../services/multerService');
 const detectBatik = require('../services/inferenceService');
 const loadModel = require('../services/loadModel');
-const { getEncyclopediaBySlug } = require('../services/encyclopediaService');
+const { getEncyclopediaBySlug, getEncyclopediaById } = require('../services/encyclopediaService');
 const router = express.Router();
 
 router.post('/', verifyToken, async (req, res) => {
@@ -33,7 +33,7 @@ router.post('/', verifyToken, async (req, res) => {
     const fileName = `${docId}-${userId}-${label}.jpg`;
     const imageUrl = await uploadToBucket(userId, req.file, fileName);
 
-    const resultDoc = await getEncyclopediaBySlug(label);
+    const resultDoc = await getEncyclopediaById(label);
 
     let data = {
       id: docId,
