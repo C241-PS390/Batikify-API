@@ -103,7 +103,7 @@ jobs:
 
       - name: Deploy to Cloud Run
         id: deploy
-        run: |-
+        run: |
           gcloud run deploy ${{ env.SERVICE }} \ 
             --image ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPOSITORY_NAME }}/${{ env.SERVICE }}:${{ github.sha }} \
             --region ${{ env.REGION }} \ 
