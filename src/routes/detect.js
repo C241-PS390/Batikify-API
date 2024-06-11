@@ -1,5 +1,6 @@
 const express = require('express');
 const { randomUUID } = require('crypto');
+const { getFirestore } = require('firebase-admin/firestore');
 const verifyToken = require('../middlewares/verifyToken');
 const {
   storeDetectHistory,
@@ -9,53 +10,56 @@ const {
 const uploadToBucket = require('../services/uploadFileService');
 const uploadFile = require('../services/multerService');
 const detectBatik = require('../services/inferenceService');
-const loadModel = require('../services/loadModel');
-const { getEncyclopediaBySlug, getEncyclopediaById } = require('../services/encyclopediaService');
+const { getEncyclopediaById } = require('../services/encyclopediaService');
 const router = express.Router();
+const db = getFirestore();
 
 router.post('/', verifyToken, async (req, res) => {
-  await uploadFile(req, res);
-  const model = await loadModel();
-
-  if (!req.file) {
-    return res.status(400).json({
-      status: 'fail',
-      message: 'No file uploaded',
-    });
-  }
-
   try {
+    await uploadFile(req, res);
+    const model = req.model;
+
+    if (!req.file) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'No file uploaded',
+      });
+    }
+
     const imageBuffer = req.file.buffer;
-    const { confidenceScore, label } = await detectBatik(model, imageBuffer);
 
-    const docId = randomUUID();
-    const userId = req.user.id;
-    const fileName = `${docId}-${userId}-${label}.jpg`;
-    const imageUrl = await uploadToBucket(userId, req.file, fileName);
+    await db.runTransaction(async () => {
+      const { confidenceScore, label } = await detectBatik(model, imageBuffer);
 
-    const resultDoc = await getEncyclopediaById(label);
+      const docId = randomUUID();
+      const userId = req.user.id;
+      const fileName = `${docId}-${userId}-${label}.jpg`;
+      const imageUrl = await uploadToBucket(userId, req.file, fileName);
 
-    let data = {
-      id: docId,
-      result: label,
-      createdAt: new Date(),
-      imageUrl,
-    };
-    const historyId = await storeDetectHistory(userId, data);
+      const resultDoc = await getEncyclopediaById(label);
 
-    res.status(201).json({
-      status: 'success',
-      message:
-        confidenceScore > 95
-          ? 'Prediksi berhasil'
-          : 'Prediksi berhasil, namun di bawah ambang batas',
-      data: {
-        historyId,
+      let data = {
+        id: docId,
+        result: label,
+        createdAt: new Date(),
         imageUrl,
-        name: resultDoc.name,
-        origin: resultDoc.origin,
-        description: resultDoc.description,
-      },
+      };
+      const historyId = await storeDetectHistory(userId, data);
+
+      res.status(201).json({
+        status: 'success',
+        message:
+          confidenceScore > 95
+            ? 'Prediksi berhasil'
+            : 'Prediksi berhasil, namun di bawah ambang batas',
+        data: {
+          historyId,
+          imageUrl,
+          name: resultDoc.name,
+          origin: resultDoc.origin,
+          description: resultDoc.description,
+        },
+      });
     });
   } catch (error) {
     res.status(500).json({

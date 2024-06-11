@@ -54,7 +54,7 @@ env:
   GAR_REPOSITORY_NAME: '${{ vars.GAR_REPOSITORY_NAME }}' # TODO: update Artifact Registry Repository name
   SERVICE: '${{ vars.GAR_REPOSITORY_NAME }}' # TODO: update Cloud Run service name
   REGION: '${{ vars.GAR_LOCATION }}' # TODO: update Cloud Run service region
-  MEMORY: '2Gi'
+  MEMORY: '4Gi'
   CPU: '2'
 
 jobs:
