@@ -1,4 +1,3 @@
-const { getFirestore } = require('firebase-admin/firestore');
 const { randomUUID } = require('crypto');
 const uploadFile = require('../services/multerService');
 const detectBatik = require('../services/inferenceService');
@@ -9,8 +8,6 @@ const {
   getAllDetectHistories,
   getDetectHistoryById,
 } = require('../services/detectService');
-
-const db = getFirestore();
 
 const storeDetectionController = async (req, res) => {
   try {
@@ -25,39 +22,38 @@ const storeDetectionController = async (req, res) => {
     }
 
     const imageBuffer = req.file.buffer;
+    const docId = randomUUID();
+    const userId = req.user.id;
+    const fileName = `${docId}.jpg`;
 
-    await db.runTransaction(async () => {
-      const { confidenceScore, label } = await detectBatik(model, imageBuffer);
+    const detectPromise = detectBatik(model, imageBuffer);
+    const uploadPromise = uploadToBucket(userId, req.file, fileName);
+    const [detectResult, imageUrl] = await Promise.all([detectPromise, uploadPromise]);
 
-      const docId = randomUUID();
-      const userId = req.user.id;
-      const fileName = `${docId}-${userId}-${label}.jpg`;
-      const imageUrl = await uploadToBucket(userId, req.file, fileName);
+    const { confidenceScore, label } = detectResult;
+    const resultDoc = await getEncyclopediaById(label);
 
-      const resultDoc = await getEncyclopediaById(label);
+    let data = {
+      id: docId,
+      result: label,
+      createdAt: new Date(),
+      imageUrl,
+    };
+    const historyId = await storeDetectHistory(userId, data);
 
-      let data = {
-        id: docId,
-        result: label,
-        createdAt: new Date(),
+    res.status(201).json({
+      status: 'success',
+      message:
+        confidenceScore > 95
+          ? 'Prediksi berhasil'
+          : 'Prediksi berhasil, namun di bawah ambang batas',
+      data: {
+        historyId,
         imageUrl,
-      };
-      const historyId = await storeDetectHistory(userId, data);
-
-      res.status(201).json({
-        status: 'success',
-        message:
-          confidenceScore > 95
-            ? 'Prediksi berhasil'
-            : 'Prediksi berhasil, namun di bawah ambang batas',
-        data: {
-          historyId,
-          imageUrl,
-          name: resultDoc.name,
-          origin: resultDoc.origin,
-          description: resultDoc.description,
-        },
-      });
+        name: resultDoc.name,
+        origin: resultDoc.origin,
+        description: resultDoc.description,
+      },
     });
   } catch (error) {
     res.status(500).json({
