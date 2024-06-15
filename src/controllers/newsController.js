@@ -1,9 +1,6 @@
-const express = require('express');
 const getNewsInfo = require('../services/searchNews');
-const verifyToken = require('../middlewares/verifyToken');
-const newsRoutes = express.Router();
 
-newsRoutes.get('/', verifyToken, async (req, res) => {
+const newsController = async (req, res) => {
   const { page, searchQuery } = req.query;
   const news = await getNewsInfo(page, searchQuery);
 
@@ -12,6 +9,6 @@ newsRoutes.get('/', verifyToken, async (req, res) => {
     message: 'News retrieved successfully',
     data: news,
   });
-});
+};
 
-module.exports = newsRoutes;
+module.exports = { newsController };

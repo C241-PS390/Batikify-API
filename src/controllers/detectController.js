@@ -1,20 +1,18 @@
-const express = require('express');
-const { randomUUID } = require('crypto');
 const { getFirestore } = require('firebase-admin/firestore');
-const verifyToken = require('../middlewares/verifyToken');
+const { randomUUID } = require('crypto');
+const uploadFile = require('../services/multerService');
+const detectBatik = require('../services/inferenceService');
+const uploadToBucket = require('../services/uploadFileService');
+const { getEncyclopediaById } = require('../services/encyclopediaService');
 const {
   storeDetectHistory,
   getAllDetectHistories,
   getDetectHistoryById,
 } = require('../services/detectService');
-const uploadToBucket = require('../services/uploadFileService');
-const uploadFile = require('../services/multerService');
-const detectBatik = require('../services/inferenceService');
-const { getEncyclopediaById } = require('../services/encyclopediaService');
-const router = express.Router();
+
 const db = getFirestore();
 
-router.post('/', verifyToken, async (req, res) => {
+const storeDetectionController = async (req, res) => {
   try {
     await uploadFile(req, res);
     const model = req.model;
@@ -67,9 +65,9 @@ router.post('/', verifyToken, async (req, res) => {
       message: error.message,
     });
   }
-});
+};
 
-router.get('/histories', verifyToken, async (req, res) => {
+const getAllDetectHistoriesController = async (req, res) => {
   try {
     const userId = req.user.id;
     const data = await getAllDetectHistories(userId);
@@ -85,9 +83,9 @@ router.get('/histories', verifyToken, async (req, res) => {
       message: error.message,
     });
   }
-});
+};
 
-router.get('/histories/:historyId', verifyToken, async (req, res) => {
+const getDetectHistoryByIdController = async (req, res) => {
   const { historyId } = req.params;
 
   try {
@@ -112,6 +110,10 @@ router.get('/histories/:historyId', verifyToken, async (req, res) => {
       message: error.message,
     });
   }
-});
+};
 
-module.exports = router;
+module.exports = {
+  storeDetectionController,
+  getAllDetectHistoriesController,
+  getDetectHistoryByIdController,
+};

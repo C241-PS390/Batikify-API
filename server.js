@@ -1,11 +1,11 @@
 require('dotenv').config();
 const express = require('express');
 const indexRoutes = require('./src/routes/index');
-const userRoutes = require('./src/routes/user');
+const userRoutes = require('./src/routes/userRoutes');
 const articleRoutes = require('./src/routes/article');
-const newsRoutes = require('./src/routes/news');
-const encyclopediaRoutes = require('./src/routes/encyclopedia');
-const detectRoutes = require('./src/routes/detect');
+const newsRoutes = require('./src/routes/newsRoutes');
+const encyclopediaRoutes = require('./src/routes/encyclopediaRoutes');
+const detectRoutes = require('./src/routes/detectRoutes');
 const loadModel = require('./src/services/loadModel');
 const app = express();
 
