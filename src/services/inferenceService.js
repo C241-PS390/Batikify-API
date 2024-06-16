@@ -5,7 +5,7 @@ async function detectBatik(model, imageBuffer) {
   try {
     const tensor = tf.node
       .decodeImage(imageBuffer)
-      .resizeNearestNeighbor([380, 380])
+      .resizeNearestNeighbor([224, 224])
       .expandDims()
       .toFloat();
 
