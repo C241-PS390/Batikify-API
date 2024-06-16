@@ -31,15 +31,16 @@ const storeDetectionController = async (req, res) => {
     const [detectResult, imageUrl] = await Promise.all([detectPromise, uploadPromise]);
 
     const { confidenceScore, label } = detectResult;
-    const resultDoc = await getEncyclopediaById(label);
-
     let data = {
       id: docId,
       result: label,
       createdAt: new Date(),
       imageUrl,
     };
-    const historyId = await storeDetectHistory(userId, data);
+
+    const encyclopediaPromise = getEncyclopediaById(label);
+    const storeHistoryPromise = storeDetectHistory(userId, data);
+    const [resultDoc, historyId] = await Promise.all([encyclopediaPromise, storeHistoryPromise]);
 
     res.status(201).json({
       status: 'success',
