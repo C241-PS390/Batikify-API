@@ -5,9 +5,9 @@ async function detectBatik(model, imageBuffer) {
   try {
     const tensor = tf.node
       .decodeImage(imageBuffer)
-      .resizeNearestNeighbor([224, 224])
-      .expandDims()
-      .toFloat();
+      .resizeBilinear([224, 224])
+      .expandDims(0)
+      .div(tf.scalar(255.0));
 
     const prediction = model.predict(tensor);
     const predictionData = await prediction.data();
