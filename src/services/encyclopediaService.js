@@ -10,7 +10,9 @@ async function getAllEncyclopedia() {
     encyclopediaSnapshot.forEach((doc) => {
       encyclopedias.push({
         id: doc.id,
-        ...doc.data(),
+        name: doc.data().name,
+        origin: doc.data().origin,
+        description: doc.data().description,
       });
     });
 
@@ -41,7 +43,13 @@ async function getEncyclopediaById(encyclopediaId) {
     throw new Error('Encyclopedia not found!');
   }
 
-  return encyclopediaDoc.data();
+  const doc = {
+    name: encyclopediaDoc.data().name,
+    origin: encyclopediaDoc.data().origin,
+    description: encyclopediaDoc.data().description,
+  };
+
+  return doc;
 }
 
 module.exports = { getAllEncyclopedia, getEncyclopediaById, searchEncyclopedia };
