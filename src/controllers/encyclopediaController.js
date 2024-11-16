@@ -1,13 +1,10 @@
-const express = require('express');
 const {
+  searchEncyclopedia,
   getAllEncyclopedia,
   getEncyclopediaById,
-  searchEncyclopedia,
 } = require('../services/encyclopediaService');
-const verifyToken = require('../middlewares/verifyToken');
-const router = express.Router();
 
-router.get('/', verifyToken, async (req, res) => {
+const getAllEncyclopediaController = async (req, res) => {
   const { search } = req.query;
   try {
     let encyclopedia;
@@ -29,9 +26,9 @@ router.get('/', verifyToken, async (req, res) => {
       error: error.message,
     });
   }
-});
+};
 
-router.get('/:encyclopediaId', verifyToken, async (req, res) => {
+const getEncyclopediaByIdController = async (req, res) => {
   const { encyclopediaId } = req.params;
 
   try {
@@ -55,6 +52,6 @@ router.get('/:encyclopediaId', verifyToken, async (req, res) => {
       });
     }
   }
-});
+};
 
-module.exports = router;
+module.exports = { getAllEncyclopediaController, getEncyclopediaByIdController };

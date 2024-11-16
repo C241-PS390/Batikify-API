@@ -1,11 +1,7 @@
-const express = require('express');
 const { validationResult } = require('express-validator');
 const { registerUser, loginUser, logoutUser } = require('../services/userService');
-const { validateRegistration, validateLogin } = require('../middlewares/userValidation');
-const verifyToken = require('../middlewares/verifyToken');
-const router = express.Router();
 
-router.post('/register', validateRegistration, async (req, res) => {
+const registerController = async (req, res) => {
   const validationErrors = validationResult(req);
   if (!validationErrors.isEmpty()) {
     return res.status(422).json({
@@ -40,9 +36,21 @@ router.post('/register', validateRegistration, async (req, res) => {
       error: error.message,
     });
   }
-});
+};
 
-router.post('/login', validateLogin, async (req, res) => {
+const loginController = async (req, res) => {
+  const validationErrors = validationResult(req);
+  if (!validationErrors.isEmpty()) {
+    return res.status(422).json({
+      status: 'fail',
+      message: 'Validation error',
+      errors: validationErrors.array().map((err) => ({
+        field: err.path,
+        message: err.msg,
+      })),
+    });
+  }
+
   const { email, password } = req.body;
   try {
     const token = await loginUser(email, password);
@@ -65,9 +73,9 @@ router.post('/login', validateLogin, async (req, res) => {
       error: error.message,
     });
   }
-});
+};
 
-router.get('/', verifyToken, async (req, res) => {
+const profileController = async (req, res) => {
   const userData = req.user;
 
   res.status(200).json({
@@ -78,9 +86,9 @@ router.get('/', verifyToken, async (req, res) => {
       email: userData.email,
     },
   });
-});
+};
 
-router.post('/logout', verifyToken, async (req, res) => {
+const logoutController = async (req, res) => {
   try {
     const token = req.headers['authorization'];
 
@@ -102,6 +110,6 @@ router.post('/logout', verifyToken, async (req, res) => {
       error: error.message,
     });
   }
-});
+};
 
-module.exports = router;
+module.exports = { registerController, loginController, profileController, logoutController };

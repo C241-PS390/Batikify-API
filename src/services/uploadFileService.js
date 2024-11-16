@@ -1,13 +1,13 @@
 const { format } = require('util');
-const { imageDetectionBucket } = require('../services/admin');
+const { historyDetectionBucket } = require('../services/admin');
 
-async function uploadToBucket(userId, file) {
+async function uploadToBucket(userId, file, fileName) {
   try {
     if (!file) {
       throw new Error('No file');
     }
 
-    const blob = imageDetectionBucket.file(`${userId}/${file.originalname}`);
+    const blob = historyDetectionBucket.file(`${userId}/${fileName}`);
     const blobStream = blob.createWriteStream({
       resumable: false,
     });
@@ -19,7 +19,7 @@ async function uploadToBucket(userId, file) {
 
       blobStream.on('finish', () => {
         const publicUrl = format(
-          `https://storage.googleapis.com/${imageDetectionBucket.name}/${blob.name}`,
+          `https://storage.googleapis.com/${historyDetectionBucket.name}/${blob.name}`,
         );
         resolve(publicUrl);
       });
